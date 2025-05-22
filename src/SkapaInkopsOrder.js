@@ -1229,7 +1229,7 @@ function SkapaInkopsOrder({ onOrderSaved }) {
                   <TableCell align="right">{Math.round(item.currentStock)}</TableCell>
                   <TableCell align="right">{item.incomingQty}</TableCell>
                   <TableCell align="right">{item.totalSales}</TableCell>
-                  <TableCell align="right">{item.avgDailySales.toFixed(1)}</TableCell>
+                  <TableCell align="right">{item.avgDailySales.toFixed(2)}</TableCell>
                   <TableCell align="right">
                     <TextField
                       variant="outlined"
