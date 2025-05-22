@@ -432,18 +432,17 @@ function SkapaInkopsOrder({ onOrderSaved }) {
     // Applicera tillväxtprocent på genomsnittlig daglig försäljning
     const adjustedAvgDailySales = avgDailySales * (1 + growthPercentage / 100);
 
-    // Hur många dagar av leveranstiden kan nuvarande lager täcka?
-    const daysCoverable = adjustedAvgDailySales > 0 ? currentStock / adjustedAvgDailySales : 0;
+    // Hur mycket lager förväntas finnas kvar när ordern anländer?
+    const remainingStockAtDelivery = currentStock - adjustedAvgDailySales * deliveryTime;
 
-    // Om lagret inte räcker hela leveranstiden, räkna bara med den del vi kan sälja
-    const effectiveLeadTime = Math.min(deliveryTime, daysCoverable);
+    // Lagerbehov när ordern anländer baserat på hela leveranstiden och säkerhetslager
+    const requiredStock = adjustedAvgDailySales * (deliveryTime + safetyStock);
 
-    // Beräkna hur mycket lager vi vill ha när ordern anländer
-    // Vi bortser från försäljning under de dagar vi saknar lager
-    const requiredStock = adjustedAvgDailySales * (effectiveLeadTime + safetyStock);
-
-    // Ta hänsyn till nuvarande lager och inkommande kvantiteter
-    const reorderQty = Math.max(0, Math.ceil(requiredStock - (currentStock || 0) - (incomingQty || 0)));
+    // Dra bara av lager som finns kvar samt inkommande kvantiteter
+    const reorderQty = Math.max(
+      0,
+      Math.ceil(requiredStock - Math.max(remainingStockAtDelivery, 0) - (incomingQty || 0))
+    );
 
     return { reorderQty, avgDailySales };
   };
