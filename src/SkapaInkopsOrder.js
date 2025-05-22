@@ -428,17 +428,23 @@ function SkapaInkopsOrder({ onOrderSaved }) {
   const calculateReorderQuantity = (totalSales, currentStock, incomingQty = 0) => {
     const periodDays = getPeriodDays();
     const avgDailySales = totalSales / periodDays;
-    
+
     // Applicera tillväxtprocent på genomsnittlig daglig försäljning
     const adjustedAvgDailySales = avgDailySales * (1 + growthPercentage / 100);
-    
-    // Använder specifikt leveranstid och säkerhetslager i beräkningen
-    // safetyStock är nu automatiskt lika med periodDays
-    const requiredStock = adjustedAvgDailySales * (deliveryTime + safetyStock);
-    
-    // Ta hänsyn till både nuvarande lager och inkommande kvantiteter
+
+    // Hur många dagar av leveranstiden kan nuvarande lager täcka?
+    const daysCoverable = adjustedAvgDailySales > 0 ? currentStock / adjustedAvgDailySales : 0;
+
+    // Om lagret inte räcker hela leveranstiden, räkna bara med den del vi kan sälja
+    const effectiveLeadTime = Math.min(deliveryTime, daysCoverable);
+
+    // Beräkna hur mycket lager vi vill ha när ordern anländer
+    // Vi bortser från försäljning under de dagar vi saknar lager
+    const requiredStock = adjustedAvgDailySales * (effectiveLeadTime + safetyStock);
+
+    // Ta hänsyn till nuvarande lager och inkommande kvantiteter
     const reorderQty = Math.max(0, Math.ceil(requiredStock - (currentStock || 0) - (incomingQty || 0)));
-    
+
     return { reorderQty, avgDailySales };
   };
 

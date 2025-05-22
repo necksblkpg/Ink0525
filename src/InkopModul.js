@@ -130,7 +130,16 @@ function InkopModul() {
     const periodDays = getPeriodDays();
     const avgDailySales = totalSales / periodDays;
     const adjustedDailySales = avgDailySales * (salesAdjustment / 100);
-    const requiredStock = adjustedDailySales * (deliveryTime + desiredCoverageDays);
+
+    // Hur många dagar av leveranstiden klarar vi av med nuvarande lager?
+    const daysCoverable = adjustedDailySales > 0 ? currentStock / adjustedDailySales : 0;
+
+    // Räkna endast med de dagar då vi faktiskt kan sälja under leveranstiden
+    const effectiveLeadTime = Math.min(deliveryTime, daysCoverable);
+
+    // Lagerbehov vid leverans bortser från försäljning under dagar då lagret är slut
+    const requiredStock = adjustedDailySales * (effectiveLeadTime + desiredCoverageDays);
+
     const reorderQty = Math.max(0, Math.ceil(requiredStock - (currentStock || 0)));
     return { reorderQty, avgDailySales, adjustedDailySales };
   };
